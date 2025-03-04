@@ -1,31 +1,18 @@
-import { useEffect } from "react";
-import { useFetcher } from "@remix-run/react";
-import {
-  Page,
-  Layout,
-  Text,
-  Card,
-  Button,
-  BlockStack,
-  Box,
-  List,
-  Link,
-  InlineStack,
-} from "@shopify/polaris";
-import { TitleBar, useAppBridge } from "@shopify/app-bridge-react";
-import { authenticate } from "../shopify.server";
+import { useEffect } from 'react'
+import { useFetcher } from '@remix-run/react'
+import { Page, Layout, Text, Card, Button, BlockStack, Box, List, Link, InlineStack } from '@shopify/polaris'
+import { TitleBar, useAppBridge } from '@shopify/app-bridge-react'
+import { authenticate } from '../shopify.server'
 
 export const loader = async ({ request }) => {
-  await authenticate.admin(request);
+  await authenticate.admin(request)
 
-  return null;
-};
+  return null
+}
 
 export const action = async ({ request }) => {
-  const { admin } = await authenticate.admin(request);
-  const color = ["Red", "Orange", "Yellow", "Green"][
-    Math.floor(Math.random() * 4)
-  ];
+  const { admin } = await authenticate.admin(request)
+  const color = ['Red', 'Orange', 'Yellow', 'Green'][Math.floor(Math.random() * 4)]
   const response = await admin.graphql(
     `#graphql
       mutation populateProduct($product: ProductCreateInput!) {
@@ -51,14 +38,14 @@ export const action = async ({ request }) => {
     {
       variables: {
         product: {
-          title: `${color} Snowboard`,
-        },
-      },
-    },
-  );
-  const responseJson = await response.json();
-  const product = responseJson.data.productCreate.product;
-  const variantId = product.variants.edges[0].node.id;
+          title: `${color} Snowboard`
+        }
+      }
+    }
+  )
+  const responseJson = await response.json()
+  const product = responseJson.data.productCreate.product
+  const variantId = product.variants.edges[0].node.id
   const variantResponse = await admin.graphql(
     `#graphql
     mutation shopifyRemixTemplateUpdateVariant($productId: ID!, $variants: [ProductVariantsBulkInput!]!) {
@@ -74,35 +61,30 @@ export const action = async ({ request }) => {
     {
       variables: {
         productId: product.id,
-        variants: [{ id: variantId, price: "100.00" }],
-      },
-    },
-  );
-  const variantResponseJson = await variantResponse.json();
+        variants: [{ id: variantId, price: '100.00' }]
+      }
+    }
+  )
+  const variantResponseJson = await variantResponse.json()
 
   return {
     product: responseJson.data.productCreate.product,
-    variant: variantResponseJson.data.productVariantsBulkUpdate.productVariants,
-  };
-};
+    variant: variantResponseJson.data.productVariantsBulkUpdate.productVariants
+  }
+}
 
 export default function Index() {
-  const fetcher = useFetcher();
-  const shopify = useAppBridge();
-  const isLoading =
-    ["loading", "submitting"].includes(fetcher.state) &&
-    fetcher.formMethod === "POST";
-  const productId = fetcher.data?.product?.id.replace(
-    "gid://shopify/Product/",
-    "",
-  );
+  const fetcher = useFetcher()
+  const shopify = useAppBridge()
+  const isLoading = ['loading', 'submitting'].includes(fetcher.state) && fetcher.formMethod === 'POST'
+  const productId = fetcher.data?.product?.id.replace('gid://shopify/Product/', '')
 
   useEffect(() => {
     if (productId) {
-      shopify.toast.show("Product created");
+      shopify.toast.show('Product created')
     }
-  }, [productId, shopify]);
-  const generateProduct = () => fetcher.submit({}, { method: "POST" });
+  }, [productId, shopify])
+  const generateProduct = () => fetcher.submit({}, { method: 'POST' })
 
   return (
     <Page>
@@ -117,28 +99,19 @@ export default function Index() {
                     Congrats on creating a new Shopify app 🎉
                   </Text>
                   <Text variant="bodyMd" as="p">
-                    This embedded app template uses{" "}
-                    <Link
-                      url="https://shopify.dev/docs/apps/tools/app-bridge"
-                      target="_blank"
-                      removeUnderline
-                    >
+                    This embedded app template uses{' '}
+                    <Link url="https://shopify.dev/docs/apps/tools/app-bridge" target="_blank" removeUnderline>
                       App Bridge
-                    </Link>{" "}
-                    interface examples like an{" "}
+                    </Link>{' '}
+                    interface examples like an{' '}
                     <Link url="/app/additional" removeUnderline>
                       additional page in the app nav
                     </Link>
-                    , as well as an{" "}
-                    <Link
-                      url="https://shopify.dev/docs/api/admin-graphql"
-                      target="_blank"
-                      removeUnderline
-                    >
+                    , as well as an{' '}
+                    <Link url="https://shopify.dev/docs/api/admin-graphql" target="_blank" removeUnderline>
                       Admin GraphQL
-                    </Link>{" "}
-                    mutation demo, to provide a starting point for app
-                    development.
+                    </Link>{' '}
+                    mutation demo, to provide a starting point for app development.
                   </Text>
                 </BlockStack>
                 <BlockStack gap="200">
@@ -146,15 +119,14 @@ export default function Index() {
                     Get started with products
                   </Text>
                   <Text as="p" variant="bodyMd">
-                    Generate a product with GraphQL and get the JSON output for
-                    that product. Learn more about the{" "}
+                    Generate a product with GraphQL and get the JSON output for that product. Learn more about the{' '}
                     <Link
                       url="https://shopify.dev/docs/api/admin-graphql/latest/mutations/productCreate"
                       target="_blank"
                       removeUnderline
                     >
                       productCreate
-                    </Link>{" "}
+                    </Link>{' '}
                     mutation in our API references.
                   </Text>
                 </BlockStack>
@@ -163,11 +135,7 @@ export default function Index() {
                     Generate a product
                   </Button>
                   {fetcher.data?.product && (
-                    <Button
-                      url={`shopify:admin/products/${productId}`}
-                      target="_blank"
-                      variant="plain"
-                    >
+                    <Button url={`shopify:admin/products/${productId}`} target="_blank" variant="plain">
                       View product
                     </Button>
                   )}
@@ -175,7 +143,7 @@ export default function Index() {
                 {fetcher.data?.product && (
                   <>
                     <Text as="h3" variant="headingMd">
-                      {" "}
+                      {' '}
                       productCreate mutation
                     </Text>
                     <Box
@@ -187,13 +155,11 @@ export default function Index() {
                       overflowX="scroll"
                     >
                       <pre style={{ margin: 0 }}>
-                        <code>
-                          {JSON.stringify(fetcher.data.product, null, 2)}
-                        </code>
+                        <code>{JSON.stringify(fetcher.data.product, null, 2)}</code>
                       </pre>
                     </Box>
                     <Text as="h3" variant="headingMd">
-                      {" "}
+                      {' '}
                       productVariantsBulkUpdate mutation
                     </Text>
                     <Box
@@ -205,9 +171,7 @@ export default function Index() {
                       overflowX="scroll"
                     >
                       <pre style={{ margin: 0 }}>
-                        <code>
-                          {JSON.stringify(fetcher.data.variant, null, 2)}
-                        </code>
+                        <code>{JSON.stringify(fetcher.data.variant, null, 2)}</code>
                       </pre>
                     </Box>
                   </>
@@ -227,11 +191,7 @@ export default function Index() {
                       <Text as="span" variant="bodyMd">
                         Framework
                       </Text>
-                      <Link
-                        url="https://remix.run"
-                        target="_blank"
-                        removeUnderline
-                      >
+                      <Link url="https://remix.run" target="_blank" removeUnderline>
                         Remix
                       </Link>
                     </InlineStack>
@@ -239,11 +199,7 @@ export default function Index() {
                       <Text as="span" variant="bodyMd">
                         Database
                       </Text>
-                      <Link
-                        url="https://www.prisma.io/"
-                        target="_blank"
-                        removeUnderline
-                      >
+                      <Link url="https://www.prisma.io/" target="_blank" removeUnderline>
                         Prisma
                       </Link>
                     </InlineStack>
@@ -252,19 +208,11 @@ export default function Index() {
                         Interface
                       </Text>
                       <span>
-                        <Link
-                          url="https://polaris.shopify.com"
-                          target="_blank"
-                          removeUnderline
-                        >
+                        <Link url="https://polaris.shopify.com" target="_blank" removeUnderline>
                           Polaris
                         </Link>
-                        {", "}
-                        <Link
-                          url="https://shopify.dev/docs/apps/tools/app-bridge"
-                          target="_blank"
-                          removeUnderline
-                        >
+                        {', '}
+                        <Link url="https://shopify.dev/docs/apps/tools/app-bridge" target="_blank" removeUnderline>
                           App Bridge
                         </Link>
                       </span>
@@ -273,11 +221,7 @@ export default function Index() {
                       <Text as="span" variant="bodyMd">
                         API
                       </Text>
-                      <Link
-                        url="https://shopify.dev/docs/api/admin-graphql"
-                        target="_blank"
-                        removeUnderline
-                      >
+                      <Link url="https://shopify.dev/docs/api/admin-graphql" target="_blank" removeUnderline>
                         GraphQL API
                       </Link>
                     </InlineStack>
@@ -291,19 +235,19 @@ export default function Index() {
                   </Text>
                   <List>
                     <List.Item>
-                      Build an{" "}
+                      Build an{' '}
                       <Link
                         url="https://shopify.dev/docs/apps/getting-started/build-app-example"
                         target="_blank"
                         removeUnderline
                       >
-                        {" "}
+                        {' '}
                         example app
-                      </Link>{" "}
+                      </Link>{' '}
                       to get started
                     </List.Item>
                     <List.Item>
-                      Explore Shopify’s API with{" "}
+                      Explore Shopify’s API with{' '}
                       <Link
                         url="https://shopify.dev/docs/apps/tools/graphiql-admin-api"
                         target="_blank"
@@ -320,5 +264,5 @@ export default function Index() {
         </Layout>
       </BlockStack>
     </Page>
-  );
+  )
 }
